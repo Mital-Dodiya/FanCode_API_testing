@@ -1,0 +1,201 @@
+{
+	"info": {
+		"_postman_id": "af5e8017-e9cd-44bc-9cf8-d8e2a7c9f61e",
+		"name": "Fancode",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "36347925"
+	},
+	"item": [
+		{
+			"name": "Finding user with FanCode city",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"// Store JSON response in a variable users\r",
+							"let users = pm.response.json();\r",
+							"\r",
+							"//Create a empty list to store user id of all users whose city is Fancode\r",
+							"let fancodeUserIds = [];\r",
+							"\r",
+							"// Create a empty list to store percentage completion of all users todos whose city is Fancode and storing it as collection variable\r",
+							"let completionlist = [];\r",
+							"pm.collectionVariables.set('completionlist', completionlist);\r",
+							"\r",
+							"//Filtering out users who belong to Fancoode city\r",
+							"users.forEach(user => {\r",
+							"    let lat = parseFloat(user.address.geo.lat); //Variable to store latitude of all users\r",
+							"    let lng = parseFloat(user.address.geo.lng); //Variable to store longitude of all users\r",
+							"\r",
+							"    // if user is from Fancode city then push its id to list fancodeUserIds\r",
+							"    if (lat >= -40 && lat <= 5 && lng >= 5 && lng <= 100) {\r",
+							"        fancodeUserIds.push(user.id);\r",
+							"    }\r",
+							"});\r",
+							"\r",
+							"//Storing fancodeUserIds list as collection variable\r",
+							"pm.collectionVariables.set('fancodeUserIds', fancodeUserIds);\r",
+							"\r",
+							"//Storing i as collection variable to iterate over fancodeUserIds\r",
+							"pm.collectionVariables.set('i', 0);\r",
+							"\r",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{URL}}users",
+					"host": [
+						"{{URL}}users"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Checking user todos",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"// Retrieve fancodeUserIds array from collection variable\r",
+							"let fancodeUserIds = pm.collectionVariables.get('fancodeUserIds');\r",
+							"\r",
+							"// Retrieve i from collection variable\r",
+							"let i = pm.collectionVariables.get('i');\r",
+							"\r",
+							"if (fancodeUserIds.length == 0){\r",
+							"    console.log(\"No user belongs to Fancode city\");\r",
+							"    pm.execution.skipRequest();\r",
+							"}\r",
+							"\r",
+							"else{\r",
+							"    //Retrive userid using i and converting it to integer. Also storing it as collection variable\r",
+							"    let index = parseInt(fancodeUserIds[i]);\r",
+							"    pm.collectionVariables.set('index', index)\r",
+							"\r",
+							"    // Set the userId in the request URL as query parameter\r",
+							"    pm.request.url.addQueryParams(\"userId={{index}}\");\r",
+							"}\r",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"//Store JSON response in a todos variable\r",
+							"let todos = pm.response.json();\r",
+							"\r",
+							"//Total no. of task in users todo\r",
+							"let totalTodos = todos.length;\r",
+							"\r",
+							"//Once current user is checked, move to next user\r",
+							"let length = pm.collectionVariables.get('fancodeUserIds').length;\r",
+							"let i = pm.collectionVariables.get('i');\r",
+							"\r",
+							"if ( i < length-1){\r",
+							"    i= i+1;\r",
+							"    pm.collectionVariables.set('i', i);\r",
+							"    pm.execution.setNextRequest(\"Checking user todos\");\r",
+							"    if (totalTodos != 0){\r",
+							"        // Total no. of completed task in todo\r",
+							"        let completedTodos = todos.filter(todo => todo.completed).length;\r",
+							"\r",
+							"        //Percentage of task completed in todo\r",
+							"        let completionPercentage = (completedTodos / totalTodos) * 100;\r",
+							"        \r",
+							"        //Save completetion percentage in a list\r",
+							"        let mylist = pm.collectionVariables.get('completionlist');\r",
+							"        mylist.push(completionPercentage);\r",
+							"        pm.collectionVariables.set('completionlist', mylist);\r",
+							"    }\r",
+							"} \r",
+							"\r",
+							"else{\r",
+							"    // When all users todos are checked, test if task are completed above 50%\r",
+							"    pm.test('All the users of City `FanCode` should have more than half of their todos task completed.', function(){\r",
+							"        let completionlist = pm.collectionVariables.get('completionlist');\r",
+							"\r",
+							"        //Iterate over each completetion list and check if todo completed is greater than 50%\r",
+							"        for(j = 0; j< completionlist.length-1; j++){\r",
+							"                pm.expect(completionlist[j]).to.be.above(50);\r",
+							"        }\r",
+							"    });\r",
+							"}"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{URL}}todos",
+					"host": [
+						"{{URL}}todos"
+					]
+				}
+			},
+			"response": []
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "fancodeUserIds",
+			"value": ""
+		},
+		{
+			"key": "i",
+			"value": ""
+		},
+		{
+			"key": "completionlist",
+			"value": ""
+		},
+		{
+			"key": "index",
+			"value": ""
+		},
+		{
+			"key": "URL",
+			"value": "http://jsonplaceholder.typicode.com/",
+			"type": "string"
+		}
+	]
+}
