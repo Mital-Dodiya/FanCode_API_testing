@@ -13,7 +13,7 @@ Follow the instructions below to download, import, and run the collection using 
 
 **Import the Collection into Postman**:
 
-1.Open Postman.
+1. Open Postman.
 2. Click on the Import button in the top-left corner of the Postman interface.
 3. Select the File tab in the Import dialog.
 4. Click Choose Files and navigate to the location where you saved the Fancode.postman_collection file.
